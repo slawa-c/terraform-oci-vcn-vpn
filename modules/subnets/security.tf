@@ -1,6 +1,6 @@
-resource "oci_core_security_list" "bastion" {
+resource "oci_core_security_list" "vcn_seclist" {
   compartment_id = var.compartment_ocid
-  display_name   = "${var.label_prefix}-bastion"
+  display_name   = "${var.label_prefix}-${var.vcn_seclist_name}"
 
   egress_security_rules {
     protocol    = "all"
@@ -8,7 +8,7 @@ resource "oci_core_security_list" "bastion" {
   }
 
   egress_security_rules {
-    protocol = "all"
+    protocol    = "all"
     destination = "::/0"
   }
 
@@ -55,27 +55,4 @@ resource "oci_core_security_list" "bastion" {
     stateless   = "false"
   }
   vcn_id = var.vcn_id
-}
-
-resource "oci_core_security_list" "web" {
-  compartment_id = var.compartment_ocid
-  display_name   = "${var.label_prefix}-web"
-
-  egress_security_rules {
-    protocol    = "all"
-    destination = "0.0.0.0/0"
-  }
-
-  ingress_security_rules {
-    # allow ssh
-    protocol = 6
-
-    source = "0.0.0.0/0"
-
-    tcp_options {
-      min = 80
-      max = 80
-    }
-  }
-  vcn_id         = var.vcn_id
 }

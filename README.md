@@ -86,33 +86,32 @@ mkdir subnets
 ```HCL
 variable "netnum" {
   description = "zero-based index of the subnet when the network is masked with the newbit. use as netnum parameter for cidrsubnet function"
-  default = {
-    bastion = 32
-    web     = 16
-  }
-  type = map
+  default = "1"
+  type = string
 }
 
 variable "newbits" {
   description = "new mask for the subnet within the virtual network. use as newbits parameter for cidrsubnet function"
-  default = {
-    bastion = 13
-    web     = 11
-  }
-  type = map
+  default = "8"
+  type = string
 }
 ```
 
 3. Create the security lists and subnets in `security.tf` and `subnets.tf` respectively in the subnets module:
 
 ```HCL
-resource "oci_core_security_list" "bastion" {
+resource "oci_core_security_list" "vcn_seclist" {
   compartment_id = var.compartment_ocid
-  display_name   = "${var.label_prefix}-bastion"
+  display_name   = "${var.label_prefix}-${var.vcn_seclist_name}"
 
   egress_security_rules {
     protocol    = "all"
     destination = "0.0.0.0/0"
+  }
+
+  egress_security_rules {
+    protocol    = "all"
+    destination = "::/0"
   }
 
   ingress_security_rules {
@@ -125,53 +124,51 @@ resource "oci_core_security_list" "bastion" {
       max = 22
     }
   }
+  ingress_security_rules {
+    description = "allow ICMP echo"
+    icmp_options {
+      code = "4"
+      type = "3"
+    }
+    protocol    = "1"
+    source      = "0.0.0.0/0"
+    source_type = "CIDR_BLOCK"
+    stateless   = "false"
+  }
+  ingress_security_rules {
+    description = "allow ipv6 ssh"
+    protocol    = "6"
+    source      = "::/0"
+    source_type = "CIDR_BLOCK"
+    stateless   = "false"
+    tcp_options {
+      max = "22"
+      min = "22"
+    }
+  }
+  ingress_security_rules {
+    icmp_options {
+      code = "0"
+      type = "2"
+    }
+    protocol    = "58"
+    source      = "::/0"
+    source_type = "CIDR_BLOCK"
+    stateless   = "false"
+  }
   vcn_id = var.vcn_id
 }
 
-resource "oci_core_security_list" "web" {
-  compartment_id = var.compartment_ocid
-  display_name   = "${var.label_prefix}-web"
 
-  egress_security_rules {
-    protocol    = "all"
-    destination = "0.0.0.0/0"
-  }
-
-  ingress_security_rules {
-    # allow ssh
-    protocol = 6
-
-    source = "0.0.0.0/0"
-
-    tcp_options {
-      min = 80
-      max = 80
-    }
-  }
-  vcn_id         = var.vcn_id
-}
-
-resource "oci_core_subnet" "bastion" {
-  cidr_block                 = cidrsubnet(var.vcn_cidr, var.newbits["bastion"], var.netnum["bastion"])
-  ipv6cidr_block             = cidrsubnet(var.vcn_ipv6cidr, var.newbits["bastion"], var.netnum["bastion"])
+resource "oci_core_subnet" "vcn_subnet" {
+  cidr_block                 = cidrsubnet(var.vcn_cidr, var.newbits, var.netnum)
+  ipv6cidr_block             = cidrsubnet(var.vcn_ipv6cidr, var.newbits, var.netnum)
   compartment_id             = var.compartment_ocid
-  display_name               = "${var.label_prefix}-bastion"
-  dns_label                  = "bastion"
+  display_name               = "${var.label_prefix}-${var.vcn_subnet_name}"
+  dns_label                  = var.vcn_subnet_name
   prohibit_public_ip_on_vnic = false
   route_table_id             = var.ig_route_id
-  security_list_ids          = [oci_core_security_list.bastion.id]
-  vcn_id                     = var.vcn_id
-}
-
-resource "oci_core_subnet" "web" {
-  cidr_block                 = cidrsubnet(var.vcn_cidr, var.newbits["web"], var.netnum["web"])
-  ipv6cidr_block             = cidrsubnet(var.vcn_ipv6cidr, var.newbits["web"], var.netnum["web"])
-  compartment_id             = var.compartment_ocid
-  display_name               = "${var.label_prefix}-web"
-  dns_label                  = "web"
-  prohibit_public_ip_on_vnic = false
-  route_table_id             = var.ig_route_id
-  security_list_ids          = [oci_core_security_list.web.id]
+  security_list_ids          = [oci_core_security_list.vcn_seclist.id]
   vcn_id                     = var.vcn_id
 }
 ```
@@ -180,15 +177,18 @@ resource "oci_core_subnet" "web" {
 
 ```HCL
 module "subnets" {
-  source = "./modules/subnets"
+  source           = "./modules/subnets"
+  compartment_ocid = var.compartment_ocid
+  label_prefix     = var.label_prefix
+  vcn_seclist_name = "sl-public-1"
+  vcn_subnet_name  = "public1"
+  netnum           = var.netnum
+  newbits          = var.newbits
+  vcn_id           = module.vcn.vcn_id
+  ig_route_id      = module.vcn.ig_route_id
+  vcn_cidr         = var.vcn_cidrs[0]
+  vcn_ipv6cidr     = join(",", module.vcn.vcn_all_attributes[*].ipv6cidr_blocks[0])
 
-  netnum  = var.netnum
-  newbits = var.newbits
-
-  # other required variables
-  .
-  .
-  .
 }
 ```
 
@@ -197,13 +197,7 @@ module "subnets" {
 ```HCL
 # subnets
 
-netnum = {
-  bastion = 32
-  web     = 16
-}
+netnum = "1"
 
-newbits = {
-  bastion = 13
-  web     = 11
-}
+newbits = "8"
 ```

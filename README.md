@@ -4,8 +4,13 @@
 [sampletfvars]:https://github.com/oracle-terraform-modules/terraform-oci-vcn/blob/main/examples/module_composition/terraform.tfvars.example
 [terraformoptions]:https://github.com/oracle-terraform-modules/terraform-oci-vcn/blob/main/docs/terraformoptions.adoc
 [terraform-oci-vcn]:https://registry.terraform.io/modules/oracle-terraform-modules/vcn/oci/latest
+[customer-secret-key]:https://docs.oracle.com/en-us/iaas/Content/Identity/Tasks/managingcredentials.htm#To4
 
 __Note: This is an example to demonstrate reusing this Terraform module to create additional network resources. Ensure you evaluate your own security needs when creating security lists, network security groups etc.__
+
+## Requirements
+
+Add to your OCI login [customer-secret-key] (previosly "S3 Access key") to maintain Terraform state of your project at OCI bucket in "S3 compatible mode"
 
 ## Create a new Terraform project
 
@@ -36,6 +41,35 @@ provider "oci" {
 ```
 
 ## Define project variables
+
+## Define Terraform remote state
+
+Write down to shared credentials api access key file like that: `~/.oci/api_keys/tf_shared_credentials` outside the folder of current project, we use that file when define access to terraform remote state at S3 bucket
+
+```HCL
+[default]
+region=eu-marseille-1
+aws_access_key_id=4546546...333
+aws_secret_access_key=Afcvf...ggg=
+```
+
+At `main.tf` add next terraform backend definition:
+
+```HCL
+terraform {
+  backend "s3" {
+    bucket                      = "terraform-states"
+    key                         = "networking/terraform.tfstate"
+    region                      = "eu-marseille-1"
+    endpoint                    = "https://<namespaces>.compat.objectstorage.<region>.oraclecloud.com"
+    shared_credentials_file     = "~/.oci/api_keys/tf_shared_credentials"
+    skip_region_validation      = true
+    skip_credentials_validation = true
+    skip_metadata_api_check     = true
+    force_path_style            = true
+  }
+}
+```
 
 ### Variables to reuse the vcn module
 

@@ -6,7 +6,7 @@ output "module_vcn" {
     nat_gateway_id      = module.vcn.nat_gateway_id
     service_gateway_id  = module.vcn.service_gateway_id
     vcn_id              = module.vcn.vcn_id
-    ipv6cidr_block = join(",",module.vcn.vcn_all_attributes[*].ipv6cidr_blocks[0])
+    ipv6cidr_block      = join(",", module.vcn.vcn_all_attributes[*].ipv6cidr_blocks[0])
   }
 }
 

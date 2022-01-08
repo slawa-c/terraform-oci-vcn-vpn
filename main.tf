@@ -1,9 +1,9 @@
 terraform {
   backend "s3" {
-    bucket   = "lzadm-terraform-states"
-    key      = "networking/terraform.tfstate"
-    region   = "eu-marseille-1"
-    endpoint = "https://axzhyuzcr5wv.compat.objectstorage.eu-marseille-1.oraclecloud.com"
+    bucket                      = "lzadm-terraform-states"
+    key                         = "networking/terraform.tfstate"
+    region                      = "eu-marseille-1"
+    endpoint                    = "https://axzhyuzcr5wv.compat.objectstorage.eu-marseille-1.oraclecloud.com"
     shared_credentials_file     = "~/.oci/api_keys/tf_shared_credentials"
     skip_region_validation      = true
     skip_credentials_validation = true
@@ -58,20 +58,18 @@ module "vcn" {
   # routing rules
 
   internet_gateway_route_rules = var.internet_gateway_route_rules # this module input shows how to pass routing information to the vcn module through  Variable Input. Can be initialized in a *.tfvars or *.auto.tfvars file
-  # nat_gateway_route_rules      = local.nat_gateway_route_rules    # this module input shows how to pass routing information to the vcn module through Local Values.
+  nat_gateway_route_rules      = local.nat_gateway_route_rules    # this module input shows how to pass routing information to the vcn module through Local Values.
 }
 
 module "subnets" {
-  source = "./modules/subnets"
+  source           = "./modules/subnets"
   compartment_ocid = var.compartment_ocid
-  netnum  = var.netnum
-  newbits = var.newbits
-  vcn_id = module.vcn.vcn_id
-  ig_route_id = module.vcn.ig_route_id
-  vcn_cidr = var.vcn_cidrs[0]
-  vcn_ipv6cidr = join(",",module.vcn.vcn_all_attributes[*].ipv6cidr_blocks[0])
-
-  # other required variables
+  netnum           = var.netnum
+  newbits          = var.newbits
+  vcn_id           = module.vcn.vcn_id
+  ig_route_id      = module.vcn.ig_route_id
+  vcn_cidr         = var.vcn_cidrs[0]
+  vcn_ipv6cidr     = join(",", module.vcn.vcn_all_attributes[*].ipv6cidr_blocks[0])
 
 }
 
@@ -82,24 +80,3 @@ module "subnets" {
 #   display_name   = "terraform-oci-lpg"
 # }
 
-
-# resource "oci_core_vcn" "generated_oci_core_vcn" {
-# 	cidr_blocks = ["10.2.0.0/16"]
-# 	# compartment_id = "ocid1.tenancy.oc1..aaaaaaaa5l5lugr4vxmu2r3aa3yh76ylywz4xdj742iuohadu475ea7mndga"
-# 	compartment_id = var.compartment_ocid
-# 	display_name = "vpn-wg01-vcn-test"
-# 	dns_label = "vpnwg01vcntest"
-# 	is_ipv6enabled = "true"
-# }
-
-# resource "oci_core_internet_gateway" "test_internet_gateway" {
-#     #Required
-#     compartment_id = var.compartment_id
-#     vcn_id = oci_core_vcn.test_vcn.id
-
-#     #Optional
-#     enabled = var.internet_gateway_enabled
-#     defined_tags = {"Operations.CostCenter"= "42"}
-#     display_name = var.internet_gateway_display_name
-#     freeform_tags = {"Department"= "Finance"}
-# }

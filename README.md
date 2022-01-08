@@ -1,93 +1,209 @@
-# vpn-wg-oci
+# Example reusing vpn-wg-oci and extending to create other network resources
 
+[rootvariables]:https://github.com/oracle-terraform-modules/terraform-oci-vcn/blob/main/examples/module_composition/variables.tf
+[sampletfvars]:https://github.com/oracle-terraform-modules/terraform-oci-vcn/blob/main/examples/module_composition/terraform.tfvars.example
+[terraformoptions]:https://github.com/oracle-terraform-modules/terraform-oci-vcn/blob/main/docs/terraformoptions.adoc
+[terraform-oci-vcn]:https://registry.terraform.io/modules/oracle-terraform-modules/vcn/oci/latest
 
+__Note: This is an example to demonstrate reusing this Terraform module to create additional network resources. Ensure you evaluate your own security needs when creating security lists, network security groups etc.__
 
-## Getting started
+## Create a new Terraform project
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+As an example, we’ll be using [terraform-oci-vcn] to create
+additional network resources in the VCN. The steps required are the following:
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+1. Create a new directory for your project e.g. mynetwork
 
-## Add your files
+2. Create the following files in root directory of your project:
 
-- [ ] [Create](https://gitlab.com/-/experiment/new_project_readme_content:b81bc2c6b2140420dbf3b3560f90a5b4?https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://gitlab.com/-/experiment/new_project_readme_content:b81bc2c6b2140420dbf3b3560f90a5b4?https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://gitlab.com/-/experiment/new_project_readme_content:b81bc2c6b2140420dbf3b3560f90a5b4?https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+- `variables.tf`
+- `locals.tf`
+- `provider.tf`
+- `main.tf`
+- `terraform.tfvars`
 
+3. Define the oci provider
+
+```HCL
+provider "oci" {
+  tenancy_ocid         = var.tenancy_ocid
+  user_ocid            = var.user_ocid
+  fingerprint          = var.fingerprint
+  private_key_path     = var.private_key_path
+  region               = var.region
+  disable_auto_retries = false
+}
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/lzadm/vpn-wg-oci.git
-git branch -M main
-git push -uf origin main
+
+## Define project variables
+
+### Variables to reuse the vcn module
+
+1. Define the vcn parameters in the root `variables.tf`.
+See an example for [`variables.tf`][rootvariables].
+
+2. Add additional variables if you need to.
+
+## Define your modules
+
+1. Define the vcn module in root `main.tf`
+
+```HCL
+module "vcn" {
+  source  = "oracle-terraform-modules/vcn/oci"
+
+  # general oci parameters
+  compartment_id = var.compartment_ocid
+  label_prefix   = var.label_prefix
+
+  # vcn parameters
+  create_internet_gateway = var.create_internet_gateway
+  create_nat_gateway      = var.create_nat_gateway
+  create_service_gateway  = var.create_service_gateway
+  create_drg               = var.create_drg
+  drg_display_name         = var.drg_display_name
+  tags                     = var.freeform_tags
+  vcn_cidrs                = var.vcn_cidrs
+  vcn_dns_label            = var.vcn_dns_label
+  vcn_name                 = var.vcn_name
+  lockdown_default_seclist = var.lockdown_default_seclist
+}
 ```
 
-## Integrate with your tools
+2. Enter appropriate values for `terraform.tfvars`. Review [Terraform Options][terraformoptions] for reference.
+You can also use this example [terraform.tfvars][sampletfvars]. Just remove the `.example` extension.
 
-- [ ] [Set up project integrations](https://gitlab.com/-/experiment/new_project_readme_content:b81bc2c6b2140420dbf3b3560f90a5b4?https://gitlab.com/lzadm/vpn-wg-oci/-/settings/integrations)
+## Add your own modules
 
-## Collaborate with your team
+1. Create your own module e.g. subnets. In modules directory, create a subnets directory:
 
-- [ ] [Invite team members and collaborators](https://gitlab.com/-/experiment/new_project_readme_content:b81bc2c6b2140420dbf3b3560f90a5b4?https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://gitlab.com/-/experiment/new_project_readme_content:b81bc2c6b2140420dbf3b3560f90a5b4?https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://gitlab.com/-/experiment/new_project_readme_content:b81bc2c6b2140420dbf3b3560f90a5b4?https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://gitlab.com/-/experiment/new_project_readme_content:b81bc2c6b2140420dbf3b3560f90a5b4?https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Automatically merge when pipeline succeeds](https://gitlab.com/-/experiment/new_project_readme_content:b81bc2c6b2140420dbf3b3560f90a5b4?https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+```shell
+mkdir subnets
+```
 
-## Test and Deploy
+2. Define the additional variables(e.g. subnet masks) in the root and module variable file (`variables.tf`) e.g.
 
-Use the built-in continuous integration in GitLab.
+```HCL
+variable "netnum" {
+  description = "zero-based index of the subnet when the network is masked with the newbit. use as netnum parameter for cidrsubnet function"
+  default = {
+    bastion = 32
+    web     = 16
+  }
+  type = map
+}
 
-- [ ] [Get started with GitLab CI/CD](https://gitlab.com/-/experiment/new_project_readme_content:b81bc2c6b2140420dbf3b3560f90a5b4?https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://gitlab.com/-/experiment/new_project_readme_content:b81bc2c6b2140420dbf3b3560f90a5b4?https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://gitlab.com/-/experiment/new_project_readme_content:b81bc2c6b2140420dbf3b3560f90a5b4?https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://gitlab.com/-/experiment/new_project_readme_content:b81bc2c6b2140420dbf3b3560f90a5b4?https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://gitlab.com/-/experiment/new_project_readme_content:b81bc2c6b2140420dbf3b3560f90a5b4?https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+variable "newbits" {
+  description = "new mask for the subnet within the virtual network. use as newbits parameter for cidrsubnet function"
+  default = {
+    bastion = 13
+    web     = 11
+  }
+  type = map
+}
+```
 
-***
+3. Create the security lists and subnets in `security.tf` and `subnets.tf` respectively in the subnets module:
 
-# Editing this README
+```HCL
+resource "oci_core_security_list" "bastion" {
+  compartment_id = var.compartment_ocid
+  display_name   = "${var.label_prefix}-bastion"
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!).  Thank you to [makeareadme.com](https://gitlab.com/-/experiment/new_project_readme_content:b81bc2c6b2140420dbf3b3560f90a5b4?https://www.makeareadme.com/) for this template.
+  egress_security_rules {
+    protocol    = "all"
+    destination = "0.0.0.0/0"
+  }
 
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+  ingress_security_rules {
+    # allow ssh
+    protocol = 6
+    source   = "0.0.0.0/0"
 
-## Name
-Choose a self-explaining name for your project.
+    tcp_options {
+      min = 22
+      max = 22
+    }
+  }
+  vcn_id = var.vcn_id
+}
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+resource "oci_core_security_list" "web" {
+  compartment_id = var.compartment_ocid
+  display_name   = "${var.label_prefix}-web"
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+  egress_security_rules {
+    protocol    = "all"
+    destination = "0.0.0.0/0"
+  }
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+  ingress_security_rules {
+    # allow ssh
+    protocol = 6
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+    source = "0.0.0.0/0"
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+    tcp_options {
+      min = 80
+      max = 80
+    }
+  }
+  vcn_id         = var.vcn_id
+}
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+resource "oci_core_subnet" "bastion" {
+  cidr_block                 = cidrsubnet(var.vcn_cidr, var.newbits["bastion"], var.netnum["bastion"])
+  ipv6cidr_block             = cidrsubnet(var.vcn_ipv6cidr, var.newbits["bastion"], var.netnum["bastion"])
+  compartment_id             = var.compartment_ocid
+  display_name               = "${var.label_prefix}-bastion"
+  dns_label                  = "bastion"
+  prohibit_public_ip_on_vnic = false
+  route_table_id             = var.ig_route_id
+  security_list_ids          = [oci_core_security_list.bastion.id]
+  vcn_id                     = var.vcn_id
+}
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+resource "oci_core_subnet" "web" {
+  cidr_block                 = cidrsubnet(var.vcn_cidr, var.newbits["web"], var.netnum["web"])
+  ipv6cidr_block             = cidrsubnet(var.vcn_ipv6cidr, var.newbits["web"], var.netnum["web"])
+  compartment_id             = var.compartment_ocid
+  display_name               = "${var.label_prefix}-web"
+  dns_label                  = "web"
+  prohibit_public_ip_on_vnic = false
+  route_table_id             = var.ig_route_id
+  security_list_ids          = [oci_core_security_list.web.id]
+  vcn_id                     = var.vcn_id
+}
+```
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+4. Add the subnets module in the `main.tf`
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+```HCL
+module "subnets" {
+  source = "./modules/subnets"
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+  netnum  = var.netnum
+  newbits = var.newbits
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+  # other required variables
+  .
+  .
+  .
+}
+```
 
-## License
-For open source projects, say how it is licensed.
+5. Update your terraform variable file and add the database parameters:
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+```HCL
+# subnets
 
+netnum = {
+  bastion = 32
+  web     = 16
+}
+
+newbits = {
+  bastion = 13
+  web     = 11
+}
+```

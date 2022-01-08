@@ -17,6 +17,7 @@ crash.log
 # to change depending on the environment.
 #
 *.tfvars
+*.tf.old
 
 # Exclude .tfplan files
 *.tfplan
@@ -42,3 +43,4 @@ terraform.rc
 # Ignore IDE configuration files
 .idea/
 .vscode/
+.DS_Store

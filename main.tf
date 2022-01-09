@@ -65,8 +65,10 @@ module "subnets" {
   source           = "./modules/subnets"
   compartment_ocid = var.compartment_ocid
   label_prefix     = var.label_prefix
+  freeform_tags    = var.freeform_tags
   vcn_seclist_name = "sl-public-1"
   vcn_subnet_name  = "public1"
+  vcn_nsg_name     = "public-instance-nsg1"
   netnum           = var.netnum
   newbits          = var.newbits
   vcn_id           = module.vcn.vcn_id

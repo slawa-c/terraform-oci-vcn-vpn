@@ -21,6 +21,12 @@ variable "vcn_subnet_name" {
   default     = "subnet"
 }
 
+variable "vcn_nsg_name" {
+  description = "a part name of network security group"
+  type        = string
+  default     = "nsg"
+}
+
 variable "freeform_tags" {
   description = "simple key-value pairs to tag the created resources using freeform OCI Free-form tags."
   type        = map(any)

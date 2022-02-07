@@ -109,6 +109,21 @@ module "instance_flex" {
   block_storage_sizes_in_gbs = var.block_storage_sizes_in_gbs
 }
 
+resource "oci_core_ipv6" "srv_ipv6" {
+  depends_on = [
+    module.instance_flex,
+  ]
+  #Required
+  # vnic_id = oci_core_vnic_attachment.test_vnic_attachment.id
+  vnic_id = join(",", module.instance_flex.vnic_attachment_all_attributes[0].vnic_attachments[*].vnic_id)
+
+  #Optional
+  # defined_tags = {"Operations.CostCenter"= "42"}
+  # display_name = var.ipv6_display_name
+  # freeform_tags = {"Department"= "Finance"}
+  # ip_address = var.ipv6_ip_address
+}
+
 # resource "oci_core_local_peering_gateway" "lpg" {
 #   # this is a Local Peering Gateway created to demonstrate how to use a gateway generated outside of the module as a target for a routing rule
 #   compartment_id = var.compartment_ocid

@@ -1,60 +1,65 @@
-formatter: "" # this is required
-
-version: ""
-
-header-from: docs/header.md
-footer-from: docs/footer.md
-
+formatter: "markdown table" # this is required
+version: "0.16"
+header-from: main.tf
+footer-from: ""
 recursive:
   enabled: false
-  path: modules
-
+  path: ""
 sections:
   hide: []
   show: []
-
+  hide-all: false # deprecated in v0.13.0, removed in v0.15.0
+  show-all: true  # deprecated in v0.13.0, removed in v0.15.0
 content: |-
-  {{ .Header }}
-
-  {{ include "docs/howto.md" }}
-
-  ## Resources
-
-  {{ range .Module.Resources }}
-  - {{ .GetMode }}.{{ .Spec }} ([{{ .Position.Filename }}#{{ .Position.Line }}]({{ .Position.Filename }}#L{{ .Position.Line }}))
-  {{- end }}
-
-  {{ include "docs/details.md" }}
-
-  {{ .Providers }}
-
   {{ .Requirements }}
+  
+  ## Usage
+
+  Basic usage of this module is as follows:
+
+  ```hcl
+
+  module "example" {
+    {{"\t"}} source  = "<module-path>"
+  {{- if .Module.RequiredInputs }}
+    {{"\n\t"}} # Required variables
+    {{- range .Module.RequiredInputs }}
+    {{"\t"}} {{ .Name }}  = {{ .GetValue }}
+    {{- end }}
+    {{- end }}
+  {{- if .Module.OptionalInputs }}
+    {{"\n\t"}} # Optional variables
+    {{- range .Module.OptionalInputs }}
+    {{"\t"}} {{ .Name }}  = {{ .GetValue | printf "%s" }}
+    {{- end }}
+    {{- end }}
+  }
+  ```
+
+  {{ .Resources }}
 
   {{ .Inputs }}
 
   {{ .Outputs }}
 
-  {{ include "docs/examples.md" }}
-
-  {{ .Footer }}
-
 output:
   file: README.md
   mode: inject
   template: |-
-    <!-- BEGIN_TF_DOCS -->
-    {{ .Content }}
-    <!-- END_TF_DOCS -->
-
+      <!-- BEGIN_AUTOMATED_TF_DOCS_BLOCK -->
+      {{ .Content }}
+      <!-- END_AUTOMATED_TF_DOCS_BLOCK -->
+output-values:
+  enabled: false
+  from: ""
 sort:
   enabled: true
   by: name
-
 settings:
   anchor: true
   color: true
   default: true
-  description: false
+  description: true
   escape: true
   hide-empty: false
   html: true

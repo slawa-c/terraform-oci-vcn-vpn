@@ -2,8 +2,8 @@ terraform {
   backend "s3" {
     bucket                      = "lzadm-terraform-states"
     key                         = "networking/terraform.tfstate"
-    region                      = "eu-marseille-1"
-    endpoint                    = "https://axzhyuzcr5wv.compat.objectstorage.eu-marseille-1.oraclecloud.com"
+    region                      = "eu-frankfurt-1"
+    endpoint                    = "https://frl3g9kf1jkd.compat.objectstorage.eu-frankfurt-1.oraclecloud.com"
     shared_credentials_file     = "~/.oci/api_keys/tf_shared_credentials"
     skip_region_validation      = true
     skip_credentials_validation = true
@@ -81,8 +81,8 @@ module "subnets" {
 # * This module will create a Flex Compute Instance, using default values: 1 OCPU, 16 GB memory.
 # * `instance_flex_memory_in_gbs` and `instance_flex_ocpus` are not provided: default values will be applied.
 module "instance_flex" {
-  source = "oracle-terraform-modules/compute-instance/oci"
-  version = "2.4.0-RC1"
+  source  = "oracle-terraform-modules/compute-instance/oci"
+  version = "2.4.0"
   # general oci parameters
   compartment_ocid = var.compartment_ocid
   freeform_tags    = var.freeform_tags

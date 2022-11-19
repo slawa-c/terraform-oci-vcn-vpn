@@ -64,14 +64,14 @@ variable "defined_tags" {
 
 variable "namespace" {
   description = "namespace name for S3 buckets"
-  type = string
-  default = "axzhyuzcr5wv"
+  type        = string
+  default     = "frl3g9kf1jkd"
 }
 
 variable "tf_state_bucket" {
   description = "name of existing OCI s3 bucket for terraform state"
-  type = string
-  default = "lzadm-terraform-states"
+  type        = string
+  default     = "lzadm-terraform-states"
 }
 
 # vcn parameters
@@ -160,14 +160,14 @@ variable "service_gateway_display_name" {
 
 variable "netnum" {
   description = "zero-based index of the subnet when the network is masked with the newbit. use as netnum parameter for cidrsubnet function"
-  default = "1"
-  type = string
+  default     = "1"
+  type        = string
 }
 
 variable "newbits" {
   description = "new mask for the subnet within the virtual network. use as newbits parameter for cidrsubnet function"
-  default = "8"
-  type = string
+  default     = "8"
+  type        = string
 }
 
 # routing rules

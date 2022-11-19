@@ -11,8 +11,8 @@ terraform {
       version = ">= 2.6.1"
     }
     oci = {
-      source = "hashicorp/oci"
-      version = ">= 4.57.0"  
+      source  = "hashicorp/oci"
+      version = ">= 4.57.0"
     }
   }
 }

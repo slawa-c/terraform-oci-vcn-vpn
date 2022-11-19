@@ -16,26 +16,26 @@ Basic usage of this module is as follows:
 ```hcl
 
 module "example" {
-  source  = "<module-path>"
+	 source  = "<module-path>"
 
-  # Required variables
-  compartment_ocid  = 
-  ig_route_id  = 
-  vcn_cidr  = 
-  vcn_id  = 
-  vcn_ipv6cidr  = 
+	 # Required variables
+	 compartment_ocid  = 
+	 ig_route_id  = 
+	 vcn_cidr  = 
+	 vcn_id  = 
+	 vcn_ipv6cidr  = 
 
-  # Optional variables
-  freeform_tags  = {
+	 # Optional variables
+	 freeform_tags  = {
   "module": "oracle-terraform-modules/vcn/oci",
   "terraformed": "please do not edit manually"
 }
-  label_prefix  = "terraform-oci"
-  netnum  = "1"
-  newbits  = "8"
-  vcn_nsg_name  = "nsg"
-  vcn_seclist_name  = "seclist"
-  vcn_subnet_name  = "subnet"
+	 label_prefix  = "terraform-oci"
+	 netnum  = "1"
+	 newbits  = "8"
+	 vcn_nsg_name  = "nsg"
+	 vcn_seclist_name  = "seclist"
+	 vcn_subnet_name  = "subnet"
 }
 ```
 

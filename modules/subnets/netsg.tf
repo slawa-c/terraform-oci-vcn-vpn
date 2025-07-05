@@ -205,3 +205,83 @@ resource "oci_core_network_security_group_security_rule" "vcn_nsg_rule_12" {
   source_type = ""
   stateless   = "false"
 }
+
+resource "oci_core_network_security_group_security_rule" "vcn_nsg_rule_13" {
+  #description = <<Optional value not found in discovery>>
+  #destination = <<Optional value not found in discovery>>
+  destination_type          = ""
+  direction                 = "INGRESS"
+  network_security_group_id = oci_core_network_security_group.vcn_nsg.id
+  protocol                  = "6"
+  source                    = "0.0.0.0/0"
+  source_type               = "CIDR_BLOCK"
+  stateless                 = "false"
+  description               = "Allow Minecraft server port"
+  tcp_options {
+    destination_port_range {
+      max = "25565"
+      min = "25565"
+    }
+    #source_port_range = <<Optional value not found in discovery>>
+  }
+}
+
+resource "oci_core_network_security_group_security_rule" "vcn_nsg_rule_14" {
+  #description = <<Optional value not found in discovery>>
+  #destination = <<Optional value not found in discovery>>
+  destination_type          = ""
+  direction                 = "INGRESS"
+  network_security_group_id = oci_core_network_security_group.vcn_nsg.id
+  protocol                  = "6"
+  source                    = "::/0"
+  source_type               = "CIDR_BLOCK"
+  stateless                 = "false"
+  description               = "Allow Minecraft server port"
+  tcp_options {
+    destination_port_range {
+      max = "25565"
+      min = "25565"
+    }
+    #source_port_range = <<Optional value not found in discovery>>
+  }
+}
+
+resource "oci_core_network_security_group_security_rule" "vcn_nsg_rule_15" {
+  #description = <<Optional value not found in discovery>>
+  #destination = <<Optional value not found in discovery>>
+  destination_type          = ""
+  direction                 = "INGRESS"
+  network_security_group_id = oci_core_network_security_group.vcn_nsg.id
+  protocol                  = "17"
+  source                    = "0.0.0.0/0"
+  source_type               = "CIDR_BLOCK"
+  stateless                 = "false"
+  description               = "Allow Minecraft server port"
+  udp_options {
+    destination_port_range {
+      max = "25565"
+      min = "25565"
+    }
+    #source_port_range = <<Optional value not found in discovery>>
+  }
+}
+
+resource "oci_core_network_security_group_security_rule" "vcn_nsg_rule_16" {
+  #description = <<Optional value not found in discovery>>
+  #destination = <<Optional value not found in discovery>>
+  destination_type          = ""
+  direction                 = "INGRESS"
+  network_security_group_id = oci_core_network_security_group.vcn_nsg.id
+  protocol                  = "17"
+  source                    = "::/0"
+  source_type               = "CIDR_BLOCK"
+  stateless                 = "false"
+  description               = "Allow Minecraft server port"
+  udp_options {
+    destination_port_range {
+      max = "25565"
+      min = "25565"
+    }
+    #source_port_range = <<Optional value not found in discovery>>
+  }
+}
